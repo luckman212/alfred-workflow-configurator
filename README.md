@@ -14,7 +14,18 @@ When updating Workflows, Alfred's current behavior is to re-enable a Workflow, e
 
 There is 1 dependency: [`jq`](https://jqlang.github.io/jq/) which is easily satisfied by `brew install jq` if you don't have it.
 
-Other than that, just place the script in your `$PATH` and run it. When run with no parameters (or with `-h/--help`) the helptext will be displayed.
+Other than that, just download the release, unzip it and place the `alfred-workflow-configurator.sh` script in your `$PATH` somewhere.
+
+When run with no parameters (or with `-h/--help`) the helptext will be displayed.
+
+#### Summary of command arguments
+
+|arg|function|
+|---|---|
+|--init|create (or recreate) the configuration file that is used to control which Workflows are disabled|
+|--table|output information of each Workflow: Name, current state, and bundle ID|
+|--check|check your Workflows and adjust them if needed so they match your saved config|
+|--cfg|opens the configuration file (stored alongside your Alfred preferences)|
 
 ### Discussion
 
