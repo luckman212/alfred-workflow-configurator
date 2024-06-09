@@ -8,7 +8,7 @@ A little Zsh script to keep your Workflows enabled or disabled programmatically.
 
 ### Why
 
-When updating Workflows, Alfred's current behavior is to re-enable a Workflow, even if it was Disabled prior to the update. This might make sense for most people, but it wasn't what I wanted. So I wrote this to keep my Workflows set the way I wanted them. 
+When updating Workflows, Alfred's current behavior is to re-enable a Workflow, _even if it was Disabled prior to the update_. This might make sense for most people, but it wasn't what I wanted. I wrote this to keep my Workflows set the way I wanted them.
 
 ### How
 
@@ -18,7 +18,7 @@ Other than that, just download the release, unzip it and place the `alfred-workf
 
 When run with no arguments (or with `-h/--help`) the helptext will be displayed.
 
-#### Commandline arguments
+#### Commandline Arguments
 
 |arg|function|
 |---|---|
