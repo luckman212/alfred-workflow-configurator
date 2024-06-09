@@ -16,16 +16,16 @@ There is 1 dependency: [`jq`](https://jqlang.github.io/jq/) which is easily sati
 
 Other than that, just download the release, unzip it and place the `alfred-workflow-configurator.sh` script in your `$PATH` somewhere.
 
-When run with no parameters (or with `-h/--help`) the helptext will be displayed.
+When run with no arguments (or with `-h/--help`) the helptext will be displayed.
 
-#### Summary of command arguments
+#### Commandline arguments
 
 |arg|function|
 |---|---|
-|--init|create (or recreate) the configuration file that is used to control which Workflows are disabled|
-|--table|output information of each Workflow: Name, current state, and bundle ID|
-|--check|check your Workflows and adjust them if needed so they match your saved config|
-|--cfg|opens the configuration file (stored alongside your Alfred preferences)|
+|`--init`|create (or recreate) the configuration file that is used to control which Workflows are disabled|
+|`--table`|output information of each Workflow: Name, current state, and bundle ID|
+|`--check`|check your Workflows and adjust them if needed so they match your saved config|
+|`--cfg`|opens the configuration file (stored alongside your Alfred preferences)|
 
 ### Discussion
 
