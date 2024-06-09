@@ -18,7 +18,7 @@ Other than that, just download the release, unzip it and place the `alfred-workf
 
 When run with no arguments (or with `-h/--help`) the helptext will be displayed.
 
-The program's config file is stored in an .ini-style file in the same folder as your Alfred preferences (will be automatically determined by reading Alfred's settings file).
+The configuration is stored in an .ini-style file in the same folder as your Alfred preferences (will be automatically determined by reading Alfred's settings file).
 
 #### Commandline Arguments
 
