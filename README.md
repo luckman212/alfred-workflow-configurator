@@ -25,7 +25,7 @@ The configuration is stored in an .ini-style file in the same folder as your Alf
 |arg|function|
 |---|---|
 |`--init`|create (or recreate) the configuration file that is used to control which Workflows are disabled|
-|`--table`|output information of each Workflow: Name, current state, and bundle ID|
+|`--table`|output information of each Workflow: Name, Current state, and Bundle ID|
 |`--check`|check your Workflows and adjust them if needed so they match your saved config|
 |`--cfg`|open the configuration file for editing|
 
