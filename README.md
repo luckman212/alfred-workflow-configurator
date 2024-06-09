@@ -18,6 +18,8 @@ Other than that, just download the release, unzip it and place the `alfred-workf
 
 When run with no arguments (or with `-h/--help`) the helptext will be displayed.
 
+The program's config file is stored in an .ini-style file in the same folder as your Alfred preferences (will be automatically determined by reading Alfred's settings file).
+
 #### Commandline Arguments
 
 |arg|function|
@@ -25,7 +27,7 @@ When run with no arguments (or with `-h/--help`) the helptext will be displayed.
 |`--init`|create (or recreate) the configuration file that is used to control which Workflows are disabled|
 |`--table`|output information of each Workflow: Name, current state, and bundle ID|
 |`--check`|check your Workflows and adjust them if needed so they match your saved config|
-|`--cfg`|opens the configuration file (stored alongside your Alfred preferences)|
+|`--cfg`|open the configuration file for editing|
 
 ### Discussion
 
