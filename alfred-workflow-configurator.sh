@@ -23,6 +23,7 @@ _usage() {
 	    --check   check and set workflow states to match saved config
 	    --init    generate configuration file from current state
 	    --cfg     open config: $CONFIG_FILE
+	    --github  open GitHub repo page in browser
 	EOF
 }
 
@@ -105,4 +106,5 @@ case $1 in
 	--check) _check;;
 	--init) _init; open "$CONFIG_FILE";;
 	--cfg) _read_config; open "$CONFIG_FILE";;
+	--github) open "https://github.com/luckman212/alfred-workflow-configurator";;
 esac
