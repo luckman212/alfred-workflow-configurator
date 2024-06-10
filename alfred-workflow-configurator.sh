@@ -12,18 +12,35 @@ fi
 [[ -d $wfdir ]] || { echo "workflow dir could not be determined"; exit 1; }
 CFG_DIR=$(realpath "$wfdir/../..")
 CONFIG_FILE="$CFG_DIR/alfredworkflows.ini"
+PREFS_CFG_FILE="$CFG_DIR/alfredprefs.ini"
+ALFRED_PREFS_DOMAIN='com.runningwithcrayons.Alfred-Preferences'
 
 typeset -gA WORKFLOWS
 typeset -gA WF_ARRAY
+typeset -aA PREFS_SAVED
+typeset -gA PREFS_KEYS=(
+	[selectedWorkflowCategory]='string'
+	[workflowpalette.hidden]='boolean'
+	[workflows.hideGalleryBadges]='boolean'
+	[workflows.hideGalleryUpdates]='boolean'
+	[workflows.onlyShowDisabled]='boolean'
+	[workflows.onlyShowEnabled]='boolean'
+	[workflows.showCategories]='boolean'
+	[workflows.showCreator]='boolean'
+	[workflows.showHotkeys]='boolean'
+	[workflows.showLastModified]='boolean'
+	[workflows.sortMode]='integer'
+)
 
 _usage() {
 	cat <<-EOF
-	usage: ${1:t} [opts]
-	    --table   print name, current state, and bundleid of every workflow on your system
-	    --check   check and set workflow states to match saved config
-	    --init    generate configuration file from current state
-	    --cfg     open config: $CONFIG_FILE
-	    --github  open GitHub repo page in browser
+	usage: ${1:t} [command]
+	    --table          print name, current state, and bundleid of every workflow on your system
+	    --check          check and set workflow states to match saved config
+	    --init           generate configuration file from current state
+	    --prefs [save]   configure Alfred Preferences.app settings according to defined values
+	    --cfg            open directory where config files are stored
+	    --github         open GitHub repo page in browser
 	EOF
 }
 
@@ -46,7 +63,7 @@ _read_config() {
 	[[ -e $CONFIG_FILE ]] || { echo "configuration does not exist, run with \`--init\`"; exit 1; }
 	while IFS='=' read -r key value; do
 		WORKFLOWS[$key]=$value
-	done <"$CONFIG_FILE"
+	done < "$CONFIG_FILE"
 }
 
 _populate() {
@@ -88,7 +105,7 @@ _check() {
 			plutil -replace disabled -bool "$(_bool "$WANT_STATUS")" "$PLIST"
 		fi
 	done
-	(( c == 0 )) && echo -n "all workflows configured correctly " ; _green '✔'
+	(( c == 0 )) && { echo -n "all workflows configured correctly " ; _green '✔'; }
 }
 
 _init() {
@@ -100,11 +117,60 @@ _init() {
 	sort -f > "$CONFIG_FILE"
 }
 
+_boolOrNot() {
+	case $1 in
+		bool*) # convert to true/false
+			case $2 in
+				1) echo "true"; return;;
+				0) echo "false"; return;;
+				*) echo >&2 "unexpected arg passed to function"; exit 1;;
+			esac
+			;;
+		*) echo "$2";; #pass thru as-is
+	esac
+}
+
+_prefs() {
+	case $1 in
+		save|--save)
+			for PREFS_KEY in "${(@k)PREFS_KEYS[@]}" ; do
+				value=$(defaults read "$ALFRED_PREFS_DOMAIN" "$PREFS_KEY" 2>/dev/null)
+				echo "${PREFS_KEY}=${value}"
+			done |
+			sort -f > "$PREFS_CFG_FILE"
+			echo "saved prefs config based on current settings"
+			exit
+			;;
+	esac
+	[[ -e $PREFS_CFG_FILE ]] || { echo "prefs configuration does not exist, run with \`--prefs save\`"; exit 1; }
+	while IFS='=' read -r key value; do
+		[[ -n $key ]] && PREFS_SAVED[$key]=$value
+	done < "$PREFS_CFG_FILE"
+	c=0
+	for PREFS_KEY in "${(@k)PREFS_KEYS[@]}" ; do
+		want_val=${PREFS_SAVED[$PREFS_KEY]}
+		keytype=${PREFS_KEYS[$PREFS_KEY]}
+		cur_value=$(defaults read "$ALFRED_PREFS_DOMAIN" "$PREFS_KEY" 2>/dev/null)
+		if [[ $cur_value != $want_val ]]; then
+			(( c++ ))
+			if [[ -n $want_val ]]; then
+				defaults write "$ALFRED_PREFS_DOMAIN" "$PREFS_KEY" -$keytype $(_boolOrNot "$keytype" "$want_val")
+				echo "changed: $PREFS_KEY=$want_val ($keytype)"
+			else
+				defaults delete "$ALFRED_PREFS_DOMAIN" "$PREFS_KEY"
+				echo "removed: $PREFS_KEY"
+			fi
+		fi
+	done < "$PREFS_CFG_FILE"
+	(( c == 0 )) && { echo -n "all prefs configured correctly " ; _green '✔'; }
+}
+
 case $1 in
 	-h|--help|'') _usage "$0";;
 	--table) _table;;
 	--check) _check;;
 	--init) _init; open "$CONFIG_FILE";;
-	--cfg) _read_config; open "$CONFIG_FILE";;
+	--cfg) _read_config; open "$CFG_DIR";;
 	--github) open "https://github.com/luckman212/alfred-workflow-configurator";;
+	--prefs) shift; _prefs "$@";;
 esac
