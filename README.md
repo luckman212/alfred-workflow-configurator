@@ -20,14 +20,18 @@ When run with no arguments (or with `-h/--help`) the helptext will be displayed.
 
 The configuration is stored in an .ini-style file in the same folder as your Alfred preferences (will be automatically determined by reading Alfred's settings file).
 
+The script can now also save and restore some preferences related to the Alfred Preferences.app itself such as workflow sort order, whether disabled workflows are hidden, etc.
+
 #### Commandline Arguments
 
 |arg|function|
 |---|---|
-|`--init`|create (or recreate) the configuration file that is used to control which Workflows are disabled|
 |`--table`|output information of each Workflow: Name, Current state, and Bundle ID|
 |`--check`|check your Workflows and adjust them if needed so they match your saved config|
-|`--cfg`|open the configuration file for editing|
+|`--init`|create (or recreate) the configuration file that is used to control which Workflows are disabled|
+|`--prefs [save]`|configure Alfred Preferences.app settings according to defined values|
+|`--cfg`|open directory where config files are stored|
+|`--github`|open GitHub repo page in browser|
 
 ### Discussion
 

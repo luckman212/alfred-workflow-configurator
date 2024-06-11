@@ -40,7 +40,7 @@ _usage() {
 	    --init           generate configuration file from current state
 	    --prefs [save]   configure Alfred Preferences.app settings according to defined values
 	    --cfg            open directory where config files are stored
-	    --github         open GitHub repo page in browser
+	    --github         open this script's GitHub repo page in browser
 	EOF
 }
 
