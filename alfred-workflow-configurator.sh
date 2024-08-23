@@ -4,7 +4,7 @@
 command -v jq &>/dev/null || { echo "jq is required: try \`brew install jq\`"; exit 1; }
 
 wfdir_unresolved=$(defaults read com.runningwithcrayons.Alfred-Preferences syncfolder)
-if [[ ! -n $wfdir_unresolved ]] ; then
+if [[ -z $wfdir_unresolved ]] ; then
 	wfdir=$(jq -r '"\(.current)/workflows"' "$HOME/Library/Application Support/Alfred/prefs.json")
 else
 	wfdir=$(eval echo "$wfdir_unresolved/Alfred.alfredpreferences/workflows")
@@ -16,8 +16,9 @@ PREFS_CFG_FILE="$CFG_DIR/alfredprefs.ini"
 ALFRED_PREFS_DOMAIN='com.runningwithcrayons.Alfred-Preferences'
 
 typeset -gA WORKFLOWS
+typeset -gA INSTALLED_WORKFLOWS
 typeset -gA WF_ARRAY
-typeset -aA PREFS_SAVED
+typeset -gA PREFS_SAVED
 typeset -gA PREFS_KEYS=(
 	[selectedWorkflowCategory]='string'
 	[workflowpalette.hidden]='boolean'
@@ -35,12 +36,12 @@ typeset -gA PREFS_KEYS=(
 _usage() {
 	cat <<-EOF
 	usage: ${1:t} [command]
-	    --table          print name, current state, and bundleid of every workflow on your system
-	    --check          check and set workflow states to match saved config
-	    --init           generate configuration file from current state
-	    --prefs [save]   configure Alfred Preferences.app settings according to defined values
-	    --cfg            open directory where config files are stored
-	    --github         open this script's GitHub repo page in browser
+	    -t,--table          print name, current state, and bundleid of every workflow on your system
+	    -c,--check          check and set workflow states to match saved config
+	    -i,--init           generate configuration file from current state
+	    -p,--prefs [save]   configure Alfred Preferences.app settings according to defined values
+	    -g,--cfg            open directory where config files are stored
+	    -b,--github         open this script's GitHub repo page in browser
 	EOF
 }
 
@@ -59,10 +60,29 @@ _bool() {
 	esac
 }
 
+_enum_wfdirs() {
+	local WF_NAME WF_BUNDLEID
+	while read -r WF_GUID ; do
+		#WF_NAME=$(_getkey name $WF_GUID/info.plist)
+		WF_BUNDLEID=$(_getkey bundleid $WF_GUID/info.plist)
+		INSTALLED_WORKFLOWS[$WF_BUNDLEID]=true
+		#echo "${WF_GUID##*/}: $WF_NAME ($WF_BUNDLEID)"
+	done < <(find "$wfdir" -type d -depth 1)
+}
+
 _read_config() {
+	local errs=0
 	[[ -e $CONFIG_FILE ]] || { echo "configuration does not exist, run with \`--init\`"; exit 1; }
-	while IFS='=' read -r key value; do
-		WORKFLOWS[$key]=$value
+	while IFS='=' read -r bundleid value; do
+		if [[ -z $INSTALLED_WORKFLOWS[$bundleid] ]] ; then
+			_red "workflow missing on disk: $bundleid"
+			(( errs++ ))
+			if (( errs == 1 )) ; then
+				IFS=':' read -u3 -r ln _ 3< <(grep -n $bundleid $CONFIG_FILE)
+				subl "${CONFIG_FILE}:${ln}"
+			fi
+		fi
+		WORKFLOWS[$bundleid]=$value
 	done < "$CONFIG_FILE"
 }
 
@@ -73,8 +93,8 @@ _populate() {
 			true) STATUS='disabled';;
 			*) STATUS='enabled';;
 		esac
-		BUNDLE_ID=$(_getkey bundleid "$PLIST")
 		NAME=$(_getkey name "$PLIST")
+		BUNDLE_ID=$(_getkey bundleid "$PLIST")
 		WF_ARRAY[$BUNDLE_ID]="$NAME"$'\t'"$STATUS"$'\t'"$PLIST"
 		if [[ $1 != '--skipcheck' ]] && [[ -z ${WORKFLOWS[$BUNDLE_ID]} ]] ; then
 			_red "undeclared workflow: $NAME [$BUNDLE_ID]"
@@ -92,6 +112,7 @@ _table() {
 }
 
 _check() {
+	_enum_wfdirs
 	_read_config
 	_populate
 	c=0
@@ -133,13 +154,14 @@ _boolOrNot() {
 _prefs() {
 	case $1 in
 		save|--save)
+			shift
 			for PREFS_KEY in "${(@k)PREFS_KEYS[@]}" ; do
 				value=$(defaults read "$ALFRED_PREFS_DOMAIN" "$PREFS_KEY" 2>/dev/null)
 				echo "${PREFS_KEY}=${value}"
 			done |
 			sort -f > "$PREFS_CFG_FILE"
 			echo "saved prefs config based on current settings"
-			exit
+			return
 			;;
 	esac
 	[[ -e $PREFS_CFG_FILE ]] || { echo "prefs configuration does not exist, run with \`--prefs save\`"; exit 1; }
@@ -167,10 +189,16 @@ _prefs() {
 
 case $1 in
 	-h|--help|'') _usage "$0";;
-	--table) _table;;
-	--check) _check;;
-	--init) _init; open "$CONFIG_FILE";;
-	--cfg) _read_config; open "$CFG_DIR";;
-	--github) open "https://github.com/luckman212/alfred-workflow-configurator";;
-	--prefs) shift; _prefs "$@";;
+	-b|--github) open "https://github.com/luckman212/alfred-workflow-configurator";;
+	-i|--init) _init; open "$CONFIG_FILE";;
 esac
+
+while (( $# > 0 )); do
+	case $1 in
+		-c|--check) _check;;
+		-p|--prefs) _prefs "$2";;
+		-g|--cfg) _enum_wfdirs; _read_config; open "$CFG_DIR";;
+		-t|--table) _table;;
+	esac
+	shift
+done
